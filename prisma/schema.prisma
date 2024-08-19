@@ -1,0 +1,163 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum RoleType {
+  ADMIN
+  USER
+  MANAGER
+  VIEWER
+  SUPERADMIN
+  GUEST
+  EDITOR
+}
+
+enum PermissionType {
+  READ
+  WRITE
+  UPDATE
+  DELETE
+  EXECUTE
+  MANAGE
+}
+
+model Role {
+  id          Int             @id @default(autoincrement())
+  name        RoleType        @unique
+  usersOffice Role_UserOffice[]
+  usersMerchantAdmin Role_UserMerchantAdmin[]
+  usersMerchant Role_UserMerchant[]
+  usersCustomer Role_UserCustomer[]
+  permissions Permission[]    @relation("RolePermissions")
+}
+
+model Permission {
+  id          Int             @id @default(autoincrement())
+  name        PermissionType  @unique
+  roles       Role[]          @relation("RolePermissions")
+  userOffices Permissions_UserOffice[]
+  userMerchantAdmins Permissions_UserMerchantAdmin[]
+  userMerchants Permissions_UserMerchant[]
+  userCustomers Permissions_UserCustomer[]
+}
+
+model Role_UserOffice {
+  id           Int          @id @default(autoincrement())
+  userOfficeId Int
+  roleId       Int
+  userOffice   UserOffice   @relation(fields: [userOfficeId], references: [id])
+  role         Role         @relation(fields: [roleId], references: [id])
+}
+
+model Permissions_UserOffice {
+  id           Int          @id @default(autoincrement())
+  userOfficeId Int
+  permissionId Int
+  userOffice   UserOffice   @relation(fields: [userOfficeId], references: [id])
+  permission   Permission   @relation(fields: [permissionId], references: [id])
+}
+
+model Role_UserMerchantAdmin {
+  id                   Int                @id @default(autoincrement())
+  userMerchantAdminId  Int
+  roleId               Int
+  userMerchantAdmin    UserMerchantAdmin  @relation(fields: [userMerchantAdminId], references: [id])
+  role                 Role                @relation(fields: [roleId], references: [id])
+}
+
+model Permissions_UserMerchantAdmin {
+  id                   Int                @id @default(autoincrement())
+  userMerchantAdminId  Int
+  permissionId         Int
+  userMerchantAdmin    UserMerchantAdmin  @relation(fields: [userMerchantAdminId], references: [id])
+  permission           Permission         @relation(fields: [permissionId], references: [id])
+}
+
+model Role_UserMerchant {
+  id               Int             @id @default(autoincrement())
+  userMerchantId   Int
+  roleId           Int
+  userMerchant     UserMerchant    @relation(fields: [userMerchantId], references: [id])
+  role             Role            @relation(fields: [roleId], references: [id])
+}
+
+model Permissions_UserMerchant {
+  id               Int             @id @default(autoincrement())
+  userMerchantId   Int
+  permissionId     Int
+  userMerchant     UserMerchant    @relation(fields: [userMerchantId], references: [id])
+  permission       Permission     @relation(fields: [permissionId], references: [id])
+}
+
+model Role_UserCustomer {
+  id              Int             @id @default(autoincrement())
+  userCustomerId  Int
+  roleId          Int
+  userCustomer    UserCustomer   @relation(fields: [userCustomerId], references: [id])
+  role            Role           @relation(fields: [roleId], references: [id])
+}
+
+model Permissions_UserCustomer {
+  id              Int             @id @default(autoincrement())
+  userCustomerId  Int
+  permissionId    Int
+  userCustomer    UserCustomer   @relation(fields: [userCustomerId], references: [id])
+  permission      Permission     @relation(fields: [permissionId], references: [id])
+}
+
+model UserOffice {
+  id           Int          @id @default(autoincrement())
+  email        String       @unique
+  password     String
+  name         String
+  branchId     Int?         // Menyimpan ID cabang jika APP_MODE adalah branch
+  branch       Branch?      @relation(fields: [branchId], references: [id])
+  roles        Role_UserOffice[]
+  permissions  Permissions_UserOffice[]
+  created_at   DateTime     @default(now())
+  updated_at   DateTime     @updatedAt
+}
+
+model UserMerchantAdmin {
+  id           Int          @id @default(autoincrement())
+  email        String       @unique
+  password     String
+  name         String
+  roles        Role_UserMerchantAdmin[]
+  permissions  Permissions_UserMerchantAdmin[]
+  created_at   DateTime     @default(now())
+  updated_at   DateTime     @updatedAt
+}
+
+model UserMerchant {
+  id           Int          @id @default(autoincrement())
+  email        String       @unique
+  password     String
+  name         String
+  roles        Role_UserMerchant[]
+  permissions  Permissions_UserMerchant[]
+  created_at   DateTime     @default(now())
+  updated_at   DateTime     @updatedAt
+}
+
+model UserCustomer {
+  id           Int          @id @default(autoincrement())
+  email        String       @unique
+  password     String
+  name         String
+  roles        Role_UserCustomer[]
+  permissions  Permissions_UserCustomer[]
+  created_at   DateTime     @default(now())
+  updated_at   DateTime     @updatedAt
+}
+
+model Branch {
+  id           Int           @id @default(autoincrement())
+  name         String        @unique
+  userOffices  UserOffice[]
+}
